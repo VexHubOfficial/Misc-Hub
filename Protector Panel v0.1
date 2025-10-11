@@ -1,0 +1,643 @@
+--// Protector Panel
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-------------------------------------------------------
+-- MAIN GUIS
+-------------------------------------------------------
+local mainGui = Instance.new("ScreenGui")
+mainGui.Name = "ProtectorPanel"
+mainGui.ResetOnSpawn = false
+mainGui.IgnoreGuiInset = true
+mainGui.Enabled = false
+mainGui.DisplayOrder = 9
+mainGui.Parent = PlayerGui
+
+local toggleGui = Instance.new("ScreenGui")
+toggleGui.Name = "ProtectorToggle"
+toggleGui.ResetOnSpawn = false
+toggleGui.DisplayOrder = 10
+toggleGui.IgnoreGuiInset = true
+toggleGui.Parent = PlayerGui
+
+-------------------------------------------------------
+-- TOGGLE BUTTON
+-------------------------------------------------------
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0,140,0,40)
+toggleButton.AnchorPoint = Vector2.new(1,1)
+toggleButton.Position = UDim2.new(1,-20,1,-20)
+toggleButton.BackgroundColor3 = Color3.fromRGB(0,0,0)
+toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextSize = 18
+toggleButton.Text = "Protector Panel"
+toggleButton.Parent = toggleGui
+
+local uiCorner = Instance.new("UICorner", toggleButton)
+uiCorner.CornerRadius = UDim.new(0,6)
+
+local uiStroke = Instance.new("UIStroke", toggleButton)
+uiStroke.Thickness = 2
+uiStroke.Color = Color3.fromRGB(255,0,0)
+
+toggleButton.Active = true
+toggleButton.Draggable = true
+
+-------------------------------------------------------
+-- SCREEN GLOW (hidden by default)
+-------------------------------------------------------
+local glowFrame = Instance.new("Frame")
+glowFrame.Name = "GlowFrame"
+glowFrame.Size = UDim2.new(1,0,1,0)
+glowFrame.BackgroundTransparency = 1
+glowFrame.ZIndex = 5
+glowFrame.Visible = false
+glowFrame.Parent = mainGui
+
+-- Four gradient edges
+local edges = {}
+local colors = {
+	Top = ColorSequence.new(Color3.fromRGB(255,255,255), Color3.fromRGB(255,0,0)),
+	Bottom = ColorSequence.new(Color3.fromRGB(255,0,0), Color3.fromRGB(0,0,0)),
+	Left = ColorSequence.new(Color3.fromRGB(255,255,255), Color3.fromRGB(255,0,0)),
+	Right = ColorSequence.new(Color3.fromRGB(255,0,0), Color3.fromRGB(0,0,0)),
+}
+for name, seq in pairs(colors) do
+	local img = Instance.new("ImageLabel")
+	img.Name = name
+	img.BackgroundTransparency = 1
+	img.BorderSizePixel = 0
+	img.ZIndex = 5
+	img.Image = "rbxassetid://9158802390" -- gradient texture
+	img.ImageColor3 = Color3.fromRGB(255,255,255)
+	img.ImageTransparency = 0.5
+	local grad = Instance.new("UIGradient")
+	grad.Color = seq
+	if name=="Left" then grad.Rotation = 0 elseif name=="Right" then grad.Rotation = 180 elseif name=="Top" then grad.Rotation = 90 else grad.Rotation = 270 end
+	grad.Parent = img
+	img.Parent = glowFrame
+	edges[name] = img
+end
+
+edges.Top.Size = UDim2.new(1,0,0,80)
+edges.Bottom.Size = UDim2.new(1,0,0,80)
+edges.Left.Size = UDim2.new(0,80,1,0)
+edges.Right.Size = UDim2.new(0,80,1,0)
+edges.Top.Position = UDim2.new(0,0,0,0)
+edges.Bottom.Position = UDim2.new(0,0,1,-80)
+edges.Left.Position = UDim2.new(0,0,0,0)
+edges.Right.Position = UDim2.new(1,-80,0,0)
+
+-------------------------------------------------------
+-- MAIN PANEL
+-------------------------------------------------------
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0,460,0,340)
+mainFrame.Position = UDim2.new(0.5,-230,0.5,-170)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = mainGui
+
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0,8)
+local frameStroke = Instance.new("UIStroke", mainFrame)
+frameStroke.Thickness = 2
+frameStroke.Color = Color3.fromRGB(255,0,0)
+
+-------------------------------------------------------
+-- TABS
+-------------------------------------------------------
+local tabFrame = Instance.new("Frame")
+tabFrame.Size = UDim2.new(1,0,0,35)
+tabFrame.BackgroundColor3 = Color3.fromRGB(15,15,15)
+tabFrame.Parent = mainFrame
+Instance.new("UICorner", tabFrame).CornerRadius = UDim.new(0,8)
+
+local tabPlayers = Instance.new("TextButton")
+tabPlayers.Name = "TabPlayers"
+tabPlayers.Size = UDim2.new(0.5,0,1,0)
+tabPlayers.Text = "Players"
+tabPlayers.BackgroundColor3 = Color3.fromRGB(0,0,0)
+tabPlayers.TextColor3 = Color3.fromRGB(255,255,255)
+tabPlayers.Font = Enum.Font.GothamBold
+tabPlayers.TextSize = 16
+tabPlayers.Parent = tabFrame
+
+local tabProtected = tabPlayers:Clone()
+tabProtected.Name = "TabProtected"
+tabProtected.Text = "Protected"
+tabProtected.Position = UDim2.new(0.5,0,0,0)
+tabProtected.Parent = tabFrame
+
+for _,t in ipairs(tabFrame:GetChildren()) do
+	Instance.new("UICorner",t).CornerRadius = UDim.new(0,6)
+	local s = Instance.new("UIStroke",t)
+	s.Thickness = 1
+	s.Color = Color3.fromRGB(255,0,0)
+end
+
+-------------------------------------------------------
+-- SCROLL FRAMES
+-------------------------------------------------------
+local playersFrame = Instance.new("ScrollingFrame")
+playersFrame.Name = "PlayersFrame"
+playersFrame.Size = UDim2.new(1,-20,1,-50)
+playersFrame.Position = UDim2.new(0,10,0,45)
+playersFrame.CanvasSize = UDim2.new(0,0,0,0)
+playersFrame.BackgroundColor3 = Color3.fromRGB(10,10,10)
+playersFrame.BorderSizePixel = 0
+playersFrame.ScrollBarThickness = 6
+playersFrame.Visible = true
+playersFrame.Parent = mainFrame
+Instance.new("UICorner", playersFrame).CornerRadius = UDim.new(0,6)
+
+local protectedFrame = playersFrame:Clone()
+protectedFrame.Name = "ProtectedFrame"
+protectedFrame.Visible = false
+protectedFrame.Parent = mainFrame
+
+-------------------------------------------------------
+-- SETUP TABLES for part 2
+-------------------------------------------------------
+_G.ProtectorPanel = {
+	MainGui = mainGui,
+	MainFrame = mainFrame,
+	TabPlayers = tabPlayers,
+	TabProtected = tabProtected,
+	PlayersFrame = playersFrame,
+	ProtectedFrame = protectedFrame,
+	ToggleButton = toggleButton,
+	GlowFrame = glowFrame,
+}
+
+--// Protector Panel : Part 2 - Logic, Interactivity, Teleport & ESP
+-- Paste this immediately below Part 1 in the same LocalScript.
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- fetch UI created in Part 1
+local ui = _G.ProtectorPanel
+local mainGui = ui.MainGui
+local mainFrame = ui.MainFrame
+local playersFrame = ui.PlayersFrame
+local protectedFrame = ui.ProtectedFrame
+local tabPlayers = ui.TabPlayers
+local tabProtected = ui.TabProtected
+local toggleButton = ui.ToggleButton
+local glowFrame = ui.GlowFrame
+
+-- state
+local protectedPlayers = {} -- [playerName] = true
+local highlights = {} -- [player] = Highlight instance
+local healthUpdateTasks = {} -- [playerName] = coroutine/boolean to control loop
+
+-- theme colors
+local COLOR_BG = Color3.fromRGB(20,20,20)
+local COLOR_PANEL = Color3.fromRGB(15,15,15)
+local COLOR_ACCENT = Color3.fromRGB(200,0,0)
+local COLOR_WHITE = Color3.fromRGB(255,255,255)
+local BTN_HOVER = Color3.fromRGB(255,80,80)
+
+-- helper tween function
+local function tween(propTable, subject, time, style, dir)
+	local info = TweenInfo.new(time or 0.18, style or Enum.EasingStyle.Sine, dir or Enum.EasingDirection.Out)
+	return TweenService:Create(subject, info, propTable)
+end
+
+-- ensure toggle button always visible (DisplayOrder already high in Part1)
+toggleButton.Parent = PlayerGui:FindFirstChild("ProtectorToggle") or toggleButton.Parent
+toggleButton.Active = true
+toggleButton.Draggable = true
+
+-- initial glow image transparencies: we'll override for tweening (set to fully transparent now)
+for _,child in pairs(glowFrame:GetChildren()) do
+	if child:IsA("ImageLabel") then
+		child.ImageTransparency = 1 -- invisible initially
+	end
+end
+glowFrame.Visible = false
+
+-- Utility: update canvas size for a scrolling frame based on children
+local function updateCanvasSize(scrollFrame, childHeight)
+	local count = 0
+	for _,c in pairs(scrollFrame:GetChildren()) do
+		if c:IsA("Frame") then count = count + 1 end
+	end
+	local height = math.max(0, count * (childHeight or 60) + 10)
+	scrollFrame.CanvasSize = UDim2.new(0,0,0, height)
+end
+
+-- Smooth show/hide of main GUI (fade + glow)
+local showing = false
+local function setPanelVisible(visible)
+	if visible == showing then return end
+	showing = visible
+	if visible then
+		mainGui.Enabled = true
+		mainFrame.Visible = true
+
+		-- fade in background/frame (use transparency tween)
+		mainFrame.BackgroundTransparency = 1
+		local t1 = tween({BackgroundTransparency = 0}, mainFrame, 0.22)
+		t1:Play()
+
+		-- show glow
+		glowFrame.Visible = true
+		for _,edge in pairs(glowFrame:GetChildren()) do
+			if edge:IsA("ImageLabel") then
+				tween({ImageTransparency = 0.35}, edge, 0.28):Play()
+			end
+		end
+	else
+		-- fade out
+		local t1 = tween({BackgroundTransparency = 1}, mainFrame, 0.18)
+		t1:Play()
+		for _,edge in pairs(glowFrame:GetChildren()) do
+			if edge:IsA("ImageLabel") then
+				tween({ImageTransparency = 1}, edge, 0.18):Play()
+			end
+		end
+		-- hide after short delay to allow tweens to finish
+		task.delay(0.2, function()
+			mainGui.Enabled = false
+			glowFrame.Visible = false
+			mainFrame.Visible = false
+		end)
+	end
+end
+
+-- Toggle handler from button
+toggleButton.MouseButton1Click:Connect(function()
+	setPanelVisible(not showing)
+end)
+
+-- Allow keyboard "P" to toggle as well (optional convenience)
+local UserInputService = game:GetService("UserInputService")
+UserInputService.InputBegan:Connect(function(inp, gameProcessed)
+	if gameProcessed then return end
+	if inp.KeyCode == Enum.KeyCode.P then
+		setPanelVisible(not showing)
+	end
+end)
+
+-- Tab switching visuals
+local function setActiveTab(tabName)
+	if tabName == "Players" then
+		playersFrame.Visible = true
+		protectedFrame.Visible = false
+		tabPlayers.BackgroundColor3 = Color3.fromRGB(30,30,30)
+		tabProtected.BackgroundColor3 = Color3.fromRGB(0,0,0)
+	else
+		playersFrame.Visible = false
+		protectedFrame.Visible = true
+		tabPlayers.BackgroundColor3 = Color3.fromRGB(0,0,0)
+		tabProtected.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	end
+end
+
+tabPlayers.MouseButton1Click:Connect(function() setActiveTab("Players") end)
+tabProtected.MouseButton1Click:Connect(function() setActiveTab("Protected") end)
+setActiveTab("Players")
+
+-- Clean helper to remove highlight of a player
+local function removeHighlightForPlayer(plr)
+	if not plr then return end
+	local h = highlights[plr]
+	if h and h.Parent then
+		h:Destroy()
+	end
+	highlights[plr] = nil
+end
+
+-- Create highlight for a player (local)
+local function createHighlightForPlayer(plr)
+	if not plr or not plr.Character then return end
+	removeHighlightForPlayer(plr)
+	local h = Instance.new("Highlight")
+	h.Adornee = plr.Character
+	-- create tri-color effect with Fill + Outline + transparency approximated
+	h.FillColor = Color3.fromRGB(255,255,255)
+	h.OutlineColor = Color3.fromRGB(200,0,0)
+	h.FillTransparency = 0.5
+	h.OutlineTransparency = 0.5
+	h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	h.Parent = workspace -- parent to workspace so it renders locally
+	highlights[plr] = h
+	return h
+end
+
+-- Toggle ESP local (returns new state)
+local function toggleESPLocal(plr)
+	if not plr then return false end
+	if highlights[plr] then
+		removeHighlightForPlayer(plr)
+		return false
+	else
+		createHighlightForPlayer(plr)
+		return true
+	end
+end
+
+-- Teleport local player to target player
+local function teleportToPlayer(plr)
+	if not plr or not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return end
+	local targetPos = plr.Character.HumanoidRootPart.Position
+	-- Check our character exists
+	local myChar = LocalPlayer.Character
+	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
+
+	-- MoveTo can be blocked in some games; attempt setting CFrame for immediate result
+	local success, err = pcall(function()
+		myChar:SetPrimaryPartCFrame(CFrame.new(targetPos + Vector3.new(0,3,0)))
+	end)
+	if not success then
+		-- fallback to MoveTo
+		pcall(function()
+			myChar:MoveTo(targetPos + Vector3.new(0,3,0))
+		end)
+	end
+end
+
+-- UI helpers for hover effects on a button
+local function addButtonHover(btn)
+	btn.MouseEnter:Connect(function()
+		if not btn or not btn:IsDescendantOf(game) then return end
+		if btn:IsA("TextButton") then
+			tween({BackgroundColor3 = BTN_HOVER}, btn, 0.12):Play()
+		end
+	end)
+	btn.MouseLeave:Connect(function()
+		if not btn or not btn:IsDescendantOf(game) then return end
+		if btn:IsA("TextButton") then
+			tween({BackgroundColor3 = Color3.fromRGB(0,0,0)}, btn, 0.12):Play()
+		end
+	end)
+end
+
+-- Build the Players list (left tab) - clickable to add/remove from protectedPlayers
+local function refreshPlayerList()
+	-- clear children (keep UICorner/UIStroke not present because we created simple children)
+	for _,c in pairs(playersFrame:GetChildren()) do
+		if c:IsA("GuiObject") then
+			c:Destroy()
+		end
+	end
+
+	local y = 6
+	for _,plr in ipairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer then
+			local entry = Instance.new("TextButton")
+			entry.Size = UDim2.new(1, -20, 0, 36)
+			entry.Position = UDim2.new(0, 10, 0, y)
+			entry.BackgroundColor3 = Color3.fromRGB(0,0,0)
+			entry.TextColor3 = COLOR_WHITE
+			entry.Font = Enum.Font.GothamBold
+			entry.TextSize = 14
+			entry.TextXAlignment = Enum.TextXAlignment.Left
+			entry.Text = (protectedPlayers[plr.Name] and "[✔] " or "") .. plr.DisplayName
+			entry.Parent = playersFrame
+			Instance.new("UICorner", entry).CornerRadius = UDim.new(0,6)
+			local stroke = Instance.new("UIStroke", entry)
+			stroke.Thickness = 1
+			stroke.Color = COLOR_ACCENT
+
+			addButtonHover(entry)
+
+			entry.MouseButton1Click:Connect(function()
+				if protectedPlayers[plr.Name] then
+					protectedPlayers[plr.Name] = nil
+					-- remove highlight if exists
+					removeHighlightForPlayer(plr)
+				else
+					protectedPlayers[plr.Name] = true
+				end
+				refreshPlayerList()
+				refreshProtectedList()
+			end)
+			y = y + 40
+		end
+	end
+	playersFrame.CanvasSize = UDim2.new(0,0,0, y)
+end
+
+-- Build Protected list (right tab)
+function refreshProtectedList()
+	-- clear children
+	for _,c in pairs(protectedFrame:GetChildren()) do
+		if c:IsA("GuiObject") then
+			c:Destroy()
+		end
+	end
+
+	local y = 6
+	for name, _ in pairs(protectedPlayers) do
+		local plr = Players:FindFirstChild(name)
+		if plr then
+			local container = Instance.new("Frame")
+			container.Size = UDim2.new(1, -20, 0, 72)
+			container.Position = UDim2.new(0, 10, 0, y)
+			container.BackgroundColor3 = Color3.fromRGB(20,20,20)
+			container.Parent = protectedFrame
+			Instance.new("UICorner", container).CornerRadius = UDim.new(0,6)
+			local stroke = Instance.new("UIStroke", container)
+			stroke.Thickness = 1
+			stroke.Color = COLOR_ACCENT
+
+			-- Avatar (async fetch)
+			local avatar = Instance.new("ImageLabel")
+			avatar.Size = UDim2.new(0,56,0,56)
+			avatar.Position = UDim2.new(0,6,0,6)
+			avatar.BackgroundTransparency = 1
+			avatar.Parent = container
+
+			-- get thumbnail (pcalls to be safe)
+			spawn(function()
+				local ok, thumb = pcall(function()
+					return Players:GetUserThumbnailAsync(plr.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+				end)
+				if ok and thumb then
+					avatar.Image = thumb
+				else
+					-- fallback: blank
+					avatar.Image = ""
+				end
+			end)
+
+			-- Name
+			local nameLabel = Instance.new("TextLabel")
+			nameLabel.Text = plr.DisplayName
+			nameLabel.Position = UDim2.new(0, 72, 0, 8)
+			nameLabel.Size = UDim2.new(0, 180, 0, 22)
+			nameLabel.TextColor3 = COLOR_WHITE
+			nameLabel.BackgroundTransparency = 1
+			nameLabel.Font = Enum.Font.GothamBold
+			nameLabel.TextSize = 16
+			nameLabel.Parent = container
+
+			-- Health
+			local healthLabel = Instance.new("TextLabel")
+			healthLabel.Text = "HP: N/A"
+			healthLabel.Position = UDim2.new(0, 72, 0, 34)
+			healthLabel.Size = UDim2.new(0, 120, 0, 20)
+			healthLabel.TextColor3 = Color3.fromRGB(0,255,0)
+			healthLabel.BackgroundTransparency = 1
+			healthLabel.Font = Enum.Font.Gotham
+			healthLabel.TextSize = 14
+			healthLabel.Parent = container
+
+			-- Teleport button (teleport you to them)
+			local btnTP = Instance.new("TextButton")
+			btnTP.Text = "Teleport"
+			btnTP.Size = UDim2.new(0,88,0,30)
+			btnTP.Position = UDim2.new(1, -190, 0, 21)
+			btnTP.Parent = container
+			Instance.new("UICorner", btnTP).CornerRadius = UDim.new(0,6)
+			local tpStroke = Instance.new("UIStroke", btnTP)
+			tpStroke.Thickness = 1
+			tpStroke.Color = COLOR_ACCENT
+			addButtonHover(btnTP)
+
+			btnTP.MouseButton1Click:Connect(function()
+				teleportToPlayer(plr)
+			end)
+
+			-- ESP Toggle button
+			local btnESP = Instance.new("TextButton")
+			btnESP.Name = "ESPButton"
+			btnESP.Text = (highlights[plr] and "ESP ON" or "ESP")
+			btnESP.Size = UDim2.new(0,88,0,30)
+			btnESP.Position = UDim2.new(1, -94, 0, 21)
+			btnESP.Parent = container
+			Instance.new("UICorner", btnESP).CornerRadius = UDim.new(0,6)
+			local espStroke = Instance.new("UIStroke", btnESP)
+			espStroke.Thickness = 1
+			espStroke.Color = COLOR_ACCENT
+			addButtonHover(btnESP)
+
+			btnESP.MouseButton1Click:Connect(function()
+				local newState = toggleESPLocal(plr)
+				btnESP.Text = newState and "ESP ON" or "ESP"
+			end)
+
+			-- Live health updater
+			local alive = true
+			healthUpdateTasks[plr.Name] = true
+			spawn(function()
+				while healthUpdateTasks[plr.Name] and plr and plr.Character and plr.Character:FindFirstChild("Humanoid") do
+					local hum = plr.Character:FindFirstChild("Humanoid")
+					if hum then
+						local h = math.floor(hum.Health)
+						healthLabel.Text = "HP: " .. tostring(h)
+						if h <= 0 then
+							healthLabel.TextColor3 = Color3.fromRGB(150,150,150)
+						else
+							healthLabel.TextColor3 = Color3.fromRGB(0,255,0)
+						end
+					else
+						healthLabel.Text = "HP: N/A"
+					end
+					task.wait(0.55)
+				end
+				healthUpdateTasks[plr.Name] = nil
+			end)
+
+			-- increment y
+			y = y + 78
+		end
+	end
+	protectedFrame.CanvasSize = UDim2.new(0,0,0, math.max(0, y))
+end
+
+-- Remove protected state when player leaves
+Players.PlayerRemoving:Connect(function(plr)
+	protectedPlayers[plr.Name] = nil
+	removeHighlightForPlayer(plr)
+	healthUpdateTasks[plr.Name] = nil
+	refreshPlayerList()
+	refreshProtectedList()
+end)
+
+-- React to players joining
+Players.PlayerAdded:Connect(function()
+	-- small delay to let the new player fully initialize
+	task.wait(0.2)
+	refreshPlayerList()
+	refreshProtectedList()
+end)
+
+-- Initialize lists
+refreshPlayerList()
+refreshProtectedList()
+
+-- Clean up highlights and tasks when script is disabled or player respawns
+LocalPlayer.AncestryChanged:Connect(function()
+	if not LocalPlayer:IsDescendantOf(game) then
+		for p,_ in pairs(highlights) do
+			if p and p.Parent then
+				p:Destroy()
+			end
+		end
+	end
+end)
+
+-- Also remove highlights when Protected flag removed manually via console or external code:
+-- (expose an API on _G to allow other scripts to add/remove protection)
+_G.ProtectorPanelAPI = _G.ProtectorPanelAPI or {}
+_G.ProtectorPanelAPI.addProtected = function(playerName)
+	protectedPlayers[playerName] = true
+	refreshPlayerList()
+	refreshProtectedList()
+end
+_G.ProtectorPanelAPI.removeProtected = function(playerName)
+	protectedPlayers[playerName] = nil
+	-- stop health updates & remove highlights if player exists
+	if Players:FindFirstChild(playerName) then
+		removeHighlightForPlayer(Players[playerName])
+		healthUpdateTasks[playerName] = nil
+	end
+	refreshPlayerList()
+	refreshProtectedList()
+end
+
+-- Optional: If you want the toggle to spawn the UI open by default when the local script runs,
+-- uncomment the following line:
+-- setPanelVisible(true)
+
+-- Final polish: keyboard escape to close
+UserInputService.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode == Enum.KeyCode.Escape and showing then
+		setPanelVisible(false)
+	end
+end)
+
+-- Safety: ensure any highlights created are destroyed when player leaves game/respawns
+LocalPlayer.CharacterRemoving:Connect(function()
+	for plr,h in pairs(highlights) do
+		if h and h.Parent then
+			h:Destroy()
+		end
+	end
+	highlights = {}
+end)
+
+-- Make sure lists keep accurate when characters respawn (health label readers rely on Character existing)
+for _,plr in pairs(Players:GetPlayers()) do
+	plr.CharacterAdded:Connect(function()
+		refreshProtectedList()
+	end)
+end
+
+-- immediate refresh (in case Part1 populated UI earlier)
+refreshPlayerList()
+refreshProtectedList()
