@@ -1,250 +1,224 @@
 --========================
--- Section 1: Home Page Tab
+-- Roblox Admin Panel - Full LocalScript (Robust & Scrollable)
 --========================
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Create ScreenGui if it doesn't exist
-local screenGui = playerGui:FindFirstChild("ModeratorPanel")
-if not screenGui then
-    screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "ModeratorPanel"
-    screenGui.Parent = playerGui
-end
+-- Create ScreenGui
+local screenGui = playerGui:FindFirstChild("ModeratorPanel") or Instance.new("ScreenGui")
+screenGui.Name = "ModeratorPanel"
+screenGui.Parent = playerGui
 
 -- Main Panel
-local mainFrame = screenGui:FindFirstChild("MainPanel")
-if not mainFrame then
-    mainFrame = Instance.new("Frame")
-    mainFrame.Name = "MainPanel"
-    mainFrame.Size = UDim2.new(0,500,0,400)
-    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
-    mainFrame.BackgroundTransparency = 0.3
-    mainFrame.BorderSizePixel = 0
-    mainFrame.ClipsDescendants = true
-    mainFrame.Visible = false
-    mainFrame.Active = true
-    mainFrame.Draggable = true
-    mainFrame.Parent = screenGui
+local mainFrame = screenGui:FindFirstChild("MainPanel") or Instance.new("Frame")
+mainFrame.Name = "MainPanel"
+mainFrame.Size = UDim2.new(0,500,0,400)
+mainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+mainFrame.BackgroundTransparency = 0.3
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Visible = false
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
 
-    local uicorner = Instance.new("UICorner")
-    uicorner.CornerRadius = UDim.new(0,10)
-    uicorner.Parent = mainFrame
-end
+local uicorner = Instance.new("UICorner")
+uicorner.CornerRadius = UDim.new(0,10)
+uicorner.Parent = mainFrame
 
 -- Toggle Button
-local toggleButton = screenGui:FindFirstChild("ToggleButton")
-if not toggleButton then
-    toggleButton = Instance.new("TextButton")
-    toggleButton.Name = "ToggleButton"
-    toggleButton.Size = UDim2.new(0,140,0,40)
-    toggleButton.Position = UDim2.new(0,10,0,10)
-    toggleButton.Text = "Moderator Panel"
-    toggleButton.BackgroundColor3 = Color3.fromRGB(0,0,0)
-    toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
-    toggleButton.BorderSizePixel = 0
-    toggleButton.ZIndex = 10
-    toggleButton.Parent = screenGui
+local toggleButton = screenGui:FindFirstChild("ToggleButton") or Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0,140,0,40)
+toggleButton.Position = UDim2.new(0,10,0,10)
+toggleButton.Text = "Moderator Panel"
+toggleButton.BackgroundColor3 = Color3.fromRGB(0,0,0)
+toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
+toggleButton.BorderSizePixel = 0
+toggleButton.ZIndex = 10
+toggleButton.Parent = screenGui
 
-    toggleButton.MouseButton1Click:Connect(function()
-        mainFrame.Visible = not mainFrame.Visible
-    end)
-end
+toggleButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+end)
 
 -- Content Frame
-local contentFrame = mainFrame:FindFirstChild("ContentFrame")
-if not contentFrame then
-    contentFrame = Instance.new("Frame")
-    contentFrame.Name = "ContentFrame"
-    contentFrame.Size = UDim2.new(1,0,1,-40)
-    contentFrame.Position = UDim2.new(0,0,0,40)
-    contentFrame.BackgroundTransparency = 1
-    contentFrame.Parent = mainFrame
-end
-
--- Home Tab Frame
-local homeTab = contentFrame:FindFirstChild("HomeTab")
-if not homeTab then
-    homeTab = Instance.new("Frame")
-    homeTab.Name = "HomeTab"
-    homeTab.Size = UDim2.new(1,0,1,0)
-    homeTab.BackgroundTransparency = 1
-    homeTab.Visible = true
-    homeTab.Parent = contentFrame
-
-    -- Profile Picture
-    local profileImage = Instance.new("ImageLabel")
-    profileImage.Size = UDim2.new(0,100,0,100)
-    profileImage.Position = UDim2.new(0.5, -50, 0.25, -50)
-    profileImage.BackgroundTransparency = 1
-    profileImage.Image = "rbxthumb://type=AvatarHeadShot&id="..player.UserId.."&w=100&h=100"
-    profileImage.Parent = homeTab
-
-    -- Username Label
-    local usernameLabel = Instance.new("TextLabel")
-    usernameLabel.Size = UDim2.new(0,300,0,30)
-    usernameLabel.Position = UDim2.new(0.5, -150, 0.55, 0)
-    usernameLabel.Text = "Username: "..player.Name
-    usernameLabel.TextColor3 = Color3.fromRGB(255,255,255)
-    usernameLabel.BackgroundTransparency = 1
-    usernameLabel.Font = Enum.Font.SourceSansBold
-    usernameLabel.TextScaled = true
-    usernameLabel.Parent = homeTab
-
-    -- Display Name Label
-    local displayNameLabel = Instance.new("TextLabel")
-    displayNameLabel.Size = UDim2.new(0,300,0,30)
-    displayNameLabel.Position = UDim2.new(0.5, -150, 0.65, 0)
-    displayNameLabel.Text = "Display Name: "..player.DisplayName
-    displayNameLabel.TextColor3 = Color3.fromRGB(255,255,255)
-    displayNameLabel.BackgroundTransparency = 1
-    displayNameLabel.Font = Enum.Font.SourceSansBold
-    displayNameLabel.TextScaled = true
-    displayNameLabel.Parent = homeTab
-
-    -- Credit Label
-    local creditLabel = Instance.new("TextLabel")
-    creditLabel.Size = UDim2.new(0,150,0,20)
-    creditLabel.Position = UDim2.new(0,10,0,10)
-    creditLabel.Text = "By Vex Hub"
-    creditLabel.TextColor3 = Color3.fromRGB(255,255,255)
-    creditLabel.BackgroundTransparency = 1
-    creditLabel.Font = Enum.Font.SourceSans
-    creditLabel.TextScaled = true
-    creditLabel.Parent = homeTab
-end
-
+local contentFrame = mainFrame:FindFirstChild("ContentFrame") or Instance.new("Frame")
+contentFrame.Name = "ContentFrame"
+contentFrame.Size = UDim2.new(1,0,1,-40)
+contentFrame.Position = UDim2.new(0,0,0,40)
+contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = mainFrame
 
 --========================
--- Section 2: Movement Tab
+-- Tab Buttons
 --========================
-
-local contentFrame = mainFrame:FindFirstChild("ContentFrame")
-if not contentFrame then return end
-
--- Movement Tab Frame
-local movementTab = contentFrame:FindFirstChild("MovementTab")
-if not movementTab then
-    movementTab = Instance.new("Frame")
-    movementTab.Name = "MovementTab"
-    movementTab.Size = UDim2.new(1,0,1,0)
-    movementTab.BackgroundTransparency = 1
-    movementTab.Visible = false
-    movementTab.Parent = contentFrame
-
-    -- Speed Label
-    local speedLabel = Instance.new("TextLabel")
-    speedLabel.Size = UDim2.new(0,150,0,30)
-    speedLabel.Position = UDim2.new(0,50,0,50)
-    speedLabel.Text = "Speed: 16"
-    speedLabel.TextColor3 = Color3.fromRGB(255,255,255)
-    speedLabel.BackgroundTransparency = 1
-    speedLabel.Font = Enum.Font.SourceSansBold
-    speedLabel.TextScaled = true
-    speedLabel.Parent = movementTab
-
-    -- Speed + / - Buttons
-    local speedPlus = Instance.new("TextButton")
-    speedPlus.Size = UDim2.new(0,40,0,30)
-    speedPlus.Position = UDim2.new(0,210,0,50)
-    speedPlus.Text = "+"
-    speedPlus.Parent = movementTab
-
-    local speedMinus = Instance.new("TextButton")
-    speedMinus.Size = UDim2.new(0,40,0,30)
-    speedMinus.Position = UDim2.new(0,260,0,50)
-    speedMinus.Text = "-"
-    speedMinus.Parent = movementTab
-
-    -- JumpPower Label
-    local jumpLabel = Instance.new("TextLabel")
-    jumpLabel.Size = UDim2.new(0,150,0,30)
-    jumpLabel.Position = UDim2.new(0,50,0,100)
-    jumpLabel.Text = "JumpPower: 50"
-    jumpLabel.TextColor3 = Color3.fromRGB(255,255,255)
-    jumpLabel.BackgroundTransparency = 1
-    jumpLabel.Font = Enum.Font.SourceSansBold
-    jumpLabel.TextScaled = true
-    jumpLabel.Parent = movementTab
-
-    -- JumpPower + / - Buttons
-    local jumpPlus = Instance.new("TextButton")
-    jumpPlus.Size = UDim2.new(0,40,0,30)
-    jumpPlus.Position = UDim2.new(0,210,0,100)
-    jumpPlus.Text = "+"
-    jumpPlus.Parent = movementTab
-
-    local jumpMinus = Instance.new("TextButton")
-    jumpMinus.Size = UDim2.new(0,40,0,30)
-    jumpMinus.Position = UDim2.new(0,260,0,100)
-    jumpMinus.Text = "-"
-    jumpMinus.Parent = movementTab
-
-    -- Infinite Jump Toggle
-    local infJumpLabel = Instance.new("TextLabel")
-    infJumpLabel.Size = UDim2.new(0,150,0,30)
-    infJumpLabel.Position = UDim2.new(0,50,0,160)
-    infJumpLabel.Text = "Infinite Jump: OFF"
-    infJumpLabel.TextColor3 = Color3.fromRGB(255,255,255)
-    infJumpLabel.BackgroundTransparency = 1
-    infJumpLabel.Font = Enum.Font.SourceSansBold
-    infJumpLabel.TextScaled = true
-    infJumpLabel.Parent = movementTab
-
-    -- Noclip Toggle
-    local noclipLabel = Instance.new("TextLabel")
-    noclipLabel.Size = UDim2.new(0,150,0,30)
-    noclipLabel.Position = UDim2.new(0,50,0,200)
-    noclipLabel.Text = "Noclip: OFF"
-    noclipLabel.TextColor3 = Color3.fromRGB(255,255,255)
-    noclipLabel.BackgroundTransparency = 1
-    noclipLabel.Font = Enum.Font.SourceSansBold
-    noclipLabel.TextScaled = true
-    noclipLabel.Parent = movementTab
+local tabButtons = {}
+local tabs = {"Home", "Movement", "Players"}
+for i, tabName in ipairs(tabs) do
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0,120,0,30)
+    button.Position = UDim2.new(0, 10 + (i-1)*130, 0, 10)
+    button.Text = tabName
+    button.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    button.TextColor3 = Color3.fromRGB(255,255,255)
+    button.BorderSizePixel = 0
+    button.Parent = mainFrame
+    tabButtons[tabName] = button
 end
 
 --========================
--- Optional: Tab Switching Logic
+-- Home Tab
 --========================
-for tabName, button in pairs(tabButtons) do
-    button.MouseButton1Click:Connect(function()
-        homeTab.Visible = (tabName == "Home")
-        movementTab.Visible = (tabName == "Movement")
-        playersTab.Visible = (tabName == "Players")
-    end)
-end
+local homeTab = contentFrame:FindFirstChild("HomeTab") or Instance.new("Frame")
+homeTab.Name = "HomeTab"
+homeTab.Size = UDim2.new(1,0,1,0)
+homeTab.BackgroundTransparency = 1
+homeTab.Visible = true
+homeTab.Parent = contentFrame
 
+-- Profile Image
+local profileImage = Instance.new("ImageLabel")
+profileImage.Size = UDim2.new(0,100,0,100)
+profileImage.Position = UDim2.new(0.5, -50, 0.25, -50)
+profileImage.BackgroundTransparency = 1
+profileImage.Image = "rbxthumb://type=AvatarHeadShot&id="..player.UserId.."&w=100&h=100"
+profileImage.Parent = homeTab
+
+-- Username
+local usernameLabel = Instance.new("TextLabel")
+usernameLabel.Size = UDim2.new(0,300,0,30)
+usernameLabel.Position = UDim2.new(0.5, -150, 0.55, 0)
+usernameLabel.Text = "Username: "..player.Name
+usernameLabel.TextColor3 = Color3.fromRGB(255,255,255)
+usernameLabel.BackgroundTransparency = 1
+usernameLabel.Font = Enum.Font.SourceSansBold
+usernameLabel.TextScaled = true
+usernameLabel.Parent = homeTab
+
+-- Display Name
+local displayNameLabel = Instance.new("TextLabel")
+displayNameLabel.Size = UDim2.new(0,300,0,30)
+displayNameLabel.Position = UDim2.new(0.5, -150, 0.65, 0)
+displayNameLabel.Text = "Display Name: "..player.DisplayName
+displayNameLabel.TextColor3 = Color3.fromRGB(255,255,255)
+displayNameLabel.BackgroundTransparency = 1
+displayNameLabel.Font = Enum.Font.SourceSansBold
+displayNameLabel.TextScaled = true
+displayNameLabel.Parent = homeTab
+
+-- Credit
+local creditLabel = Instance.new("TextLabel")
+creditLabel.Size = UDim2.new(0,150,0,20)
+creditLabel.Position = UDim2.new(0,10,0,10)
+creditLabel.Text = "By Vex Hub"
+creditLabel.TextColor3 = Color3.fromRGB(255,255,255)
+creditLabel.BackgroundTransparency = 1
+creditLabel.Font = Enum.Font.SourceSans
+creditLabel.TextScaled = true
+creditLabel.Parent = homeTab
 
 --========================
--- Section 3: Players Tab
+-- Movement Tab
 --========================
+local movementTab = contentFrame:FindFirstChild("MovementTab") or Instance.new("Frame")
+movementTab.Name = "MovementTab"
+movementTab.Size = UDim2.new(1,0,1,0)
+movementTab.BackgroundTransparency = 1
+movementTab.Visible = false
+movementTab.Parent = contentFrame
 
-local contentFrame = mainFrame:FindFirstChild("ContentFrame")
-if not contentFrame then return end
+-- Speed
+local speedLabel = Instance.new("TextLabel")
+speedLabel.Size = UDim2.new(0,150,0,30)
+speedLabel.Position = UDim2.new(0,50,0,50)
+speedLabel.Text = "Speed: 16"
+speedLabel.TextColor3 = Color3.fromRGB(255,255,255)
+speedLabel.BackgroundTransparency = 1
+speedLabel.Font = Enum.Font.SourceSansBold
+speedLabel.TextScaled = true
+speedLabel.Parent = movementTab
 
--- Players Tab Frame
-local playersTab = contentFrame:FindFirstChild("PlayersTab")
-if not playersTab then
-    playersTab = Instance.new("Frame")
-    playersTab.Name = "PlayersTab"
-    playersTab.Size = UDim2.new(1,0,1,0)
-    playersTab.BackgroundTransparency = 1
-    playersTab.Visible = false
-    playersTab.Parent = contentFrame
+local speedPlus = Instance.new("TextButton")
+speedPlus.Size = UDim2.new(0,40,0,30)
+speedPlus.Position = UDim2.new(0,210,0,50)
+speedPlus.Text = "+"
+speedPlus.Parent = movementTab
 
-    -- Scrollable Frame for Player List
-    local playerList = Instance.new("ScrollingFrame")
-    playerList.Name = "PlayerList"
-    playerList.Size = UDim2.new(1,-20,1,-20)
-    playerList.Position = UDim2.new(0,10,0,10)
-    playerList.CanvasSize = UDim2.new(0,0,5,0)
-    playerList.BackgroundTransparency = 1
-    playerList.ScrollBarThickness = 8
-    playerList.Parent = playersTab
-end
+local speedMinus = Instance.new("TextButton")
+speedMinus.Size = UDim2.new(0,40,0,30)
+speedMinus.Position = UDim2.new(0,260,0,50)
+speedMinus.Text = "-"
+speedMinus.Parent = movementTab
+
+-- JumpPower
+local jumpLabel = Instance.new("TextLabel")
+jumpLabel.Size = UDim2.new(0,150,0,30)
+jumpLabel.Position = UDim2.new(0,50,0,100)
+jumpLabel.Text = "JumpPower: 50"
+jumpLabel.TextColor3 = Color3.fromRGB(255,255,255)
+jumpLabel.BackgroundTransparency = 1
+jumpLabel.Font = Enum.Font.SourceSansBold
+jumpLabel.TextScaled = true
+jumpLabel.Parent = movementTab
+
+local jumpPlus = Instance.new("TextButton")
+jumpPlus.Size = UDim2.new(0,40,0,30)
+jumpPlus.Position = UDim2.new(0,210,0,100)
+jumpPlus.Text = "+"
+jumpPlus.Parent = movementTab
+
+local jumpMinus = Instance.new("TextButton")
+jumpMinus.Size = UDim2.new(0,40,0,30)
+jumpMinus.Position = UDim2.new(0,260,0,100)
+jumpMinus.Text = "-"
+jumpMinus.Parent = movementTab
+
+-- Infinite Jump
+local infJumpLabel = Instance.new("TextLabel")
+infJumpLabel.Size = UDim2.new(0,150,0,30)
+infJumpLabel.Position = UDim2.new(0,50,0,160)
+infJumpLabel.Text = "Infinite Jump: OFF"
+infJumpLabel.TextColor3 = Color3.fromRGB(255,255,255)
+infJumpLabel.BackgroundTransparency = 1
+infJumpLabel.Font = Enum.Font.SourceSansBold
+infJumpLabel.TextScaled = true
+infJumpLabel.Parent = movementTab
+
+-- Noclip
+local noclipLabel = Instance.new("TextLabel")
+noclipLabel.Size = UDim2.new(0,150,0,30)
+noclipLabel.Position = UDim2.new(0,50,0,200)
+noclipLabel.Text = "Noclip: OFF"
+noclipLabel.TextColor3 = Color3.fromRGB(255,255,255)
+noclipLabel.BackgroundTransparency = 1
+noclipLabel.Font = Enum.Font.SourceSansBold
+noclipLabel.TextScaled = true
+noclipLabel.Parent = movementTab
+
+--========================
+-- Players Tab
+--========================
+local playersTab = contentFrame:FindFirstChild("PlayersTab") or Instance.new("Frame")
+playersTab.Name = "PlayersTab"
+playersTab.Size = UDim2.new(1,0,1,0)
+playersTab.BackgroundTransparency = 1
+playersTab.Visible = false
+playersTab.Parent = contentFrame
+
+local playerList = playersTab:FindFirstChild("PlayerList") or Instance.new("ScrollingFrame")
+playerList.Name = "PlayerList"
+playerList.Size = UDim2.new(1,-20,1,-20)
+playerList.Position = UDim2.new(0,10,0,10)
+playerList.BackgroundTransparency = 1
+playerList.ScrollBarThickness = 8
+playerList.Parent = playersTab
 
 --========================
 -- Tab Switching Logic
@@ -257,101 +231,102 @@ for tabName, button in pairs(tabButtons) do
     end)
 end
 
-
 --========================
--- Functionality for Movement Tab
+-- Movement Functionality with Respawn Handling
 --========================
-
+local speed = 16
+local jumpPower = 50
+local infJumpEnabled = false
+local noclipEnabled = false
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 
--- Movement Values
-local speed = 16
-local jumpPower = 50
+local function setupCharacter(char)
+    humanoid = char:WaitForChild("Humanoid")
+end
 
--- Speed Buttons
+player.CharacterAdded:Connect(setupCharacter)
+
+-- Speed buttons
 speedPlus.MouseButton1Click:Connect(function()
     speed += 2
-    humanoid.WalkSpeed = speed
+    if humanoid then humanoid.WalkSpeed = speed end
     speedLabel.Text = "Speed: "..speed
 end)
-
 speedMinus.MouseButton1Click:Connect(function()
-    speed = math.max(0, speed-2)
-    humanoid.WalkSpeed = speed
+    speed = math.max(0,speed-2)
+    if humanoid then humanoid.WalkSpeed = speed end
     speedLabel.Text = "Speed: "..speed
 end)
 
--- JumpPower Buttons
+-- Jump buttons
 jumpPlus.MouseButton1Click:Connect(function()
     jumpPower += 2
-    humanoid.JumpPower = jumpPower
+    if humanoid then humanoid.JumpPower = jumpPower end
     jumpLabel.Text = "JumpPower: "..jumpPower
 end)
-
 jumpMinus.MouseButton1Click:Connect(function()
-    jumpPower = math.max(0, jumpPower-2)
-    humanoid.JumpPower = jumpPower
+    jumpPower = math.max(0,jumpPower-2)
+    if humanoid then humanoid.JumpPower = jumpPower end
     jumpLabel.Text = "JumpPower: "..jumpPower
 end)
 
 -- Infinite Jump
-local infJumpEnabled = false
 infJumpLabel.MouseButton1Click:Connect(function()
     infJumpEnabled = not infJumpEnabled
     infJumpLabel.Text = "Infinite Jump: "..(infJumpEnabled and "ON" or "OFF")
 end)
 
--- Connect infinite jump
-player.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space then
-        if infJumpEnabled and humanoid.FloorMaterial == Enum.Material.Air then
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Enum.KeyCode.Space then
+        if infJumpEnabled and humanoid and humanoid.FloorMaterial == Enum.Material.Air then
             humanoid.Jump = true
         end
     end
 end)
 
 -- Noclip
-local noclipEnabled = false
 noclipLabel.MouseButton1Click:Connect(function()
     noclipEnabled = not noclipEnabled
     noclipLabel.Text = "Noclip: "..(noclipEnabled and "ON" or "OFF")
 end)
-
-game:GetService("RunService").Stepped:Connect(function()
-    if noclipEnabled then
+RunService.Stepped:Connect(function()
+    if character then
         for _, part in pairs(character:GetDescendants()) do
             if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    else
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
+                part.CanCollide = not noclipEnabled
             end
         end
     end
 end)
 
 --========================
--- Functionality for Players Tab
+-- Players Tab Functionality (Scrollable & Robust)
 --========================
+local function updateCanvas()
+    local totalHeight = 0
+    for _, frame in pairs(playerList:GetChildren()) do
+        if frame:IsA("Frame") then
+            totalHeight += frame.Size.Y.Offset + 5
+        end
+    end
+    playerList.CanvasSize = UDim2.new(0,0,0,totalHeight)
+end
 
 local function createPlayerFrame(targetPlayer)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1,-10,0,80)
+    frame.Position = UDim2.new(0,0,0,0)
     frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
     frame.BorderSizePixel = 0
-    frame.Parent = playerList
     frame.Name = targetPlayer.Name.."_Frame"
+    frame.Parent = playerList
 
     local uicorner = Instance.new("UICorner")
     uicorner.CornerRadius = UDim.new(0,6)
     uicorner.Parent = frame
 
-    -- Name Label
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Size = UDim2.new(0.5,0,0.4,0)
     nameLabel.Position = UDim2.new(0.05,0,0.1,0)
@@ -362,7 +337,6 @@ local function createPlayerFrame(targetPlayer)
     nameLabel.TextScaled = true
     nameLabel.Parent = frame
 
-    -- HP Label
     local hpLabel = Instance.new("TextLabel")
     hpLabel.Size = UDim2.new(0.3,0,0.3,0)
     hpLabel.Position = UDim2.new(0.05,0,0.55,0)
@@ -373,7 +347,6 @@ local function createPlayerFrame(targetPlayer)
     hpLabel.TextScaled = true
     hpLabel.Parent = frame
 
-    -- Teleport Button
     local tpButton = Instance.new("TextButton")
     tpButton.Size = UDim2.new(0.2,0,0.3,0)
     tpButton.Position = UDim2.new(0.55,0,0.35,0)
@@ -384,12 +357,11 @@ local function createPlayerFrame(targetPlayer)
     tpButton.Parent = frame
 
     tpButton.MouseButton1Click:Connect(function()
-        if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("HumanoidRootPart") then
+        if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") and character and character:FindFirstChild("HumanoidRootPart") then
             character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(2,0,2)
         end
     end)
 
-    -- ESP Toggle Button
     local espButton = Instance.new("TextButton")
     espButton.Size = UDim2.new(0.2,0,0.3,0)
     espButton.Position = UDim2.new(0.78,0,0.35,0)
@@ -404,47 +376,51 @@ local function createPlayerFrame(targetPlayer)
     local highlight
 
     espButton.MouseButton1Click:Connect(function()
-        if highlight then
-            highlight:Destroy()
-        end
-        index = index + 1
+        if highlight then highlight:Destroy() end
+        index += 1
         if index > #colors then index = 1 end
-
-        highlight = Instance.new("Highlight")
-        highlight.Adornee = targetPlayer.Character
-        highlight.FillColor = colors[index]
-        highlight.FillTransparency = 0.5
-        highlight.OutlineTransparency = 0.8
-        highlight.Parent = workspace
-        espButton.Text = "ESP: "..({ "Red","Blue","Green"})[index]
+        if targetPlayer.Character then
+            highlight = Instance.new("Highlight")
+            highlight.Adornee = targetPlayer.Character
+            highlight.FillColor = colors[index]
+            highlight.FillTransparency = 0.5
+            highlight.OutlineTransparency = 0.8
+            highlight.Parent = workspace
+            espButton.Text = "ESP: "..({ "Red","Blue","Green"})[index]
+        end
     end)
 
-    -- Update HP every 0.5s
+    -- Update HP and Canvas Size
     spawn(function()
         while frame.Parent do
             if targetPlayer.Character and targetPlayer.Character:FindFirstChild("Humanoid") then
                 hpLabel.Text = "HP: "..math.floor(targetPlayer.Character.Humanoid.Health)
             end
+            updateCanvas()
             wait(0.5)
         end
+    end)
+
+    -- Clean up highlight if player leaves or respawns
+    targetPlayer.CharacterAdded:Connect(function()
+        if highlight then highlight:Destroy() end
+    end)
+    targetPlayer.AncestryChanged:Connect(function(_,parent)
+        if not parent and highlight then highlight:Destroy() end
     end)
 end
 
 -- Add existing players
 for _, p in pairs(Players:GetPlayers()) do
-    if p ~= player then
-        createPlayerFrame(p)
-    end
+    if p ~= player then createPlayerFrame(p) end
 end
 
--- Add players who join
+-- Player joining
 Players.PlayerAdded:Connect(function(p)
-    if p ~= player then
-        createPlayerFrame(p)
-    end
+    if p ~= player then createPlayerFrame(p) end
 end)
 
--- Remove players who leave
+-- Player leaving
 Players.PlayerRemoving:Connect(function(p)
     local frame = playerList:FindFirstChild(p.Name.."_Frame")
     if frame then frame:Destroy() end
