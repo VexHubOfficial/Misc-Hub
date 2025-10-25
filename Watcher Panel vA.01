@@ -1,0 +1,545 @@
+-- Watcher Panel By Vex Hub Dev & Creator
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+
+-- -------------------------------
+-- Helper: Make Frame Draggable
+-- -------------------------------
+local function makeDraggable(frame)
+	local dragging, dragInput, startPos, startInputPos
+	local function update(input)
+		local delta = input.Position - startInputPos
+		frame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+	frame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true
+			startInputPos = input.Position
+			startPos = frame.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+	frame.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement then
+			dragInput = input
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if input == dragInput and dragging then
+			update(input)
+		end
+	end)
+end
+
+-- -------------------------------
+-- GUI SETUP
+-- -------------------------------
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TheWatcherGUI"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Toggle Button
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0,100,0,40)
+toggleButton.Position = UDim2.new(0,20,0.5,-20)
+toggleButton.Text = "Watcher"
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextSize = 16
+toggleButton.TextColor3 = Color3.new(1,1,1)
+toggleButton.BackgroundColor3 = Color3.fromRGB(40,40,40)
+toggleButton.Parent = screenGui
+makeDraggable(toggleButton)
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0,500,0,400)
+mainFrame.Position = UDim2.new(0,140,0.5,-200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(150,50,255)
+mainFrame.BorderSizePixel = 0
+mainFrame.Visible = true
+mainFrame.Parent = screenGui
+makeDraggable(mainFrame)
+
+-- Header
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1,0,0,40)
+header.BackgroundColor3 = Color3.fromRGB(35,35,35)
+header.Parent = mainFrame
+
+local headerText = Instance.new("TextLabel")
+headerText.Size = UDim2.new(1,-10,1,0)
+headerText.Position = UDim2.new(0,5,0,0)
+headerText.Font = Enum.Font.GothamBold
+headerText.TextSize = 18
+headerText.TextColor3 = Color3.new(1,1,1)
+headerText.Text = "The Watcher"
+headerText.TextXAlignment = Enum.TextXAlignment.Left
+headerText.BackgroundTransparency = 1
+headerText.Parent = header
+
+local credits = Instance.new("TextLabel")
+credits.Size = UDim2.new(0,100,1,0)
+credits.Position = UDim2.new(1,-105,0,0)
+credits.Font = Enum.Font.Gotham
+credits.TextSize = 14
+credits.TextColor3 = Color3.fromRGB(200,200,200)
+credits.Text = "By Vex Hub"
+credits.BackgroundTransparency = 1
+credits.Parent = header
+
+-- -------------------------------
+-- TAB SETUP
+-- -------------------------------
+local tabFrame = Instance.new("Frame")
+tabFrame.Size = UDim2.new(0,100,1,-40)
+tabFrame.Position = UDim2.new(0,0,0,40)
+tabFrame.BackgroundColor3 = Color3.fromRGB(150,50,255)
+tabFrame.Parent = mainFrame
+
+local uiList = Instance.new("UIListLayout")
+uiList.Padding = UDim.new(0,5)
+uiList.FillDirection = Enum.FillDirection.Vertical
+uiList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+uiList.VerticalAlignment = Enum.VerticalAlignment.Top
+uiList.Parent = tabFrame
+
+local contentFrame = Instance.new("Frame")
+contentFrame.Size = UDim2.new(1,-100,1,-40)
+contentFrame.Position = UDim2.new(0,100,0,40)
+contentFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+contentFrame.Parent = mainFrame
+
+local function createTabButton(name)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1,-10,0,40)
+	btn.BackgroundColor3 = Color3.fromRGB(105,55,180)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 14
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.Text = name
+	btn.Parent = tabFrame
+	return btn
+end
+
+local playersTabBtn = createTabButton("Players")
+local selectedTabBtn = createTabButton("Selected")
+local guiTabBtn = createTabButton("GUI")
+
+-- -------------------------------
+-- PLAYERS TAB
+-- -------------------------------
+local playersFrame = Instance.new("ScrollingFrame")
+playersFrame.Size = UDim2.new(1,0,1,0)
+playersFrame.BackgroundTransparency = 1
+playersFrame.ScrollBarThickness = 6
+playersFrame.Visible = true
+playersFrame.Parent = contentFrame
+
+local playerListLayout = Instance.new("UIListLayout")
+playerListLayout.Padding = UDim.new(0,5)
+playerListLayout.Parent = playersFrame
+
+local selectedPlayers = {}
+
+local function createPlayerEntry(plr)
+	if plr == player then return end
+
+	local entry = Instance.new("Frame")
+	entry.Size = UDim2.new(1,-10,0,110)
+	entry.BackgroundColor3 = Color3.fromRGB(38,38,38)
+	entry.BorderSizePixel = 0
+	entry.Parent = playersFrame
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0,6)
+	corner.Parent = entry
+
+	local headshot = Instance.new("ImageLabel")
+	headshot.Size = UDim2.new(0,60,0,60)
+	headshot.Position = UDim2.new(0,8,0,10)
+	headshot.BackgroundTransparency = 1
+	headshot.Parent = entry
+
+	task.spawn(function()
+		local thumb = Players:GetUserThumbnailAsync(plr.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size100x100)
+		headshot.Image = thumb
+	end)
+
+	local textHolder = Instance.new("Frame")
+	textHolder.Size = UDim2.new(1,-85,0,60)
+	textHolder.Position = UDim2.new(0,75,0,10)
+	textHolder.BackgroundTransparency = 1
+	textHolder.Parent = entry
+
+	local displayName = Instance.new("TextLabel")
+	displayName.Size = UDim2.new(1,0,0,30)
+	displayName.Font = Enum.Font.GothamBold
+	displayName.TextSize = 18
+	displayName.TextColor3 = Color3.new(1,1,1)
+	displayName.Text = plr.DisplayName
+	displayName.TextXAlignment = Enum.TextXAlignment.Left
+	displayName.BackgroundTransparency = 1
+	displayName.Parent = textHolder
+
+	local username = Instance.new("TextLabel")
+	username.Size = UDim2.new(1,0,0,20)
+	username.Position = UDim2.new(0,0,0,28)
+	username.Font = Enum.Font.Gotham
+	username.TextSize = 14
+	username.TextColor3 = Color3.fromRGB(180,180,180)
+	username.Text = "@"..plr.Name
+	username.TextXAlignment = Enum.TextXAlignment.Left
+	username.BackgroundTransparency = 1
+	username.Parent = textHolder
+
+	local selectBtn = Instance.new("TextButton")
+	selectBtn.Size = UDim2.new(0,80,0,25)
+	selectBtn.Position = UDim2.new(0.5,-40,0,75)
+	selectBtn.BackgroundColor3 = Color3.fromRGB(105,55,180)
+	selectBtn.Font = Enum.Font.GothamBold
+	selectBtn.TextSize = 14
+	selectBtn.TextColor3 = Color3.new(1,1,1)
+	selectBtn.Text = "SELECT"
+	selectBtn.Parent = entry
+
+	selectBtn.MouseButton1Click:Connect(function()
+		if selectedPlayers[plr] then
+			selectedPlayers[plr] = nil
+			selectBtn.Text = "SELECT"
+		else
+			selectedPlayers[plr] = plr
+			selectBtn.Text = "DESELECT"
+		end
+		refreshSelectedTab()
+		refreshPlayers()
+	end)
+end
+
+local function refreshPlayers()
+	for _, c in pairs(playersFrame:GetChildren()) do
+		if c:IsA("Frame") then c:Destroy() end
+	end
+	local sorted = {}
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= player then
+			table.insert(sorted, plr)
+		end
+	end
+	table.sort(sorted, function(a,b)
+		local aSel, bSel = selectedPlayers[a], selectedPlayers[b]
+		if aSel and not bSel then return true end
+		if not aSel and bSel then return false end
+		return a.DisplayName < b.DisplayName
+	end)
+	for _, plr in ipairs(sorted) do
+		createPlayerEntry(plr)
+	end
+	playersFrame.CanvasSize = UDim2.new(0,0,0,playerListLayout.AbsoluteContentSize.Y+10)
+end
+
+Players.PlayerAdded:Connect(refreshPlayers)
+Players.PlayerRemoving:Connect(refreshPlayers)
+refreshPlayers()
+
+-- -------------------------------
+-- SELECTED TAB + HIGHLIGHTS
+-- -------------------------------
+local selectedFrame = Instance.new("ScrollingFrame")
+selectedFrame.Size = UDim2.new(1,0,1,0)
+selectedFrame.BackgroundTransparency = 1
+selectedFrame.ScrollBarThickness = 6
+selectedFrame.Visible = false
+selectedFrame.Parent = contentFrame
+
+local selectedListLayout = Instance.new("UIListLayout")
+selectedListLayout.Padding = UDim.new(0,10)
+selectedListLayout.Parent = selectedFrame
+
+local activeHighlights = {}
+
+local function applyHighlight(plr, color)
+	task.defer(function()
+		if not plr.Character then plr.CharacterAdded:Wait() end
+		if plr.Character and not plr.Character:FindFirstChildOfClass("Highlight") then
+			local h = Instance.new("Highlight")
+			h.FillColor = color
+			h.OutlineColor = color
+			h.Parent = plr.Character
+			local head = plr.Character:FindFirstChild("Head")
+			if head then
+				local gui = Instance.new("BillboardGui")
+				gui.Size = UDim2.new(0,150,0,50)
+				gui.AlwaysOnTop = true
+				gui.Adornee = head
+				gui.Name = "AboveHeadGui"
+				gui.Parent = plr.Character
+
+				local display = Instance.new("TextLabel")
+				display.Size = UDim2.new(1,0,0,20)
+				display.BackgroundTransparency = 1
+				display.Font = Enum.Font.GothamBold
+				display.TextSize = 14
+				display.TextColor3 = Color3.new(1,1,1)
+				display.Text = plr.DisplayName
+				display.Parent = gui
+
+				local username = Instance.new("TextLabel")
+				username.Size = UDim2.new(1,0,0,20)
+				username.Position = UDim2.new(0,0,0,20)
+				username.BackgroundTransparency = 1
+				username.Font = Enum.Font.Gotham
+				username.TextSize = 12
+				username.TextColor3 = Color3.fromRGB(180,180,180)
+				username.Text = "@"..plr.Name
+				username.Parent = gui
+
+				local hp = Instance.new("TextLabel")
+				hp.Size = UDim2.new(1,0,0,10)
+				hp.Position = UDim2.new(0,0,0,40)
+				hp.BackgroundTransparency = 1
+				hp.Font = Enum.Font.Gotham
+				hp.TextSize = 12
+				hp.TextColor3 = Color3.fromRGB(255,255,255)
+				hp.Text = "HP: N/A"
+				hp.Parent = gui
+
+				local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+				if hum then
+					hp.Text = "HP: "..math.floor(hum.Health)
+					hum.HealthChanged:Connect(function(health)
+						hp.Text = "HP: "..math.floor(health)
+					end)
+				end
+			end
+		end
+	end)
+end
+
+local function createSelectedPlayerFrame(plr)
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.new(1,-20,0,180)
+	frame.BackgroundColor3 = Color3.fromRGB(38,38,38)
+	frame.BorderSizePixel = 0
+	frame.Parent = selectedFrame
+
+	local pic = Instance.new("ImageLabel")
+	pic.Size = UDim2.new(0,100,0,100)
+	pic.Position = UDim2.new(0,10,0,10)
+	pic.BackgroundTransparency = 1
+	pic.Parent = frame
+	task.spawn(function()
+		pic.Image = Players:GetUserThumbnailAsync(plr.UserId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size100x100)
+	end)
+
+	local nameLbl = Instance.new("TextLabel")
+	nameLbl.Position = UDim2.new(0,120,0,10)
+	nameLbl.Size = UDim2.new(1,-130,0,35)
+	nameLbl.Font = Enum.Font.GothamBold
+	nameLbl.TextSize = 20
+	nameLbl.TextColor3 = Color3.new(1,1,1)
+	nameLbl.BackgroundTransparency = 1
+	nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+	nameLbl.Text = plr.DisplayName
+	nameLbl.Parent = frame
+
+	local userLbl = Instance.new("TextLabel")
+	userLbl.Position = UDim2.new(0,120,0,40)
+	userLbl.Size = UDim2.new(1,-130,0,25)
+	userLbl.Font = Enum.Font.Gotham
+	userLbl.TextSize = 14
+	userLbl.TextColor3 = Color3.fromRGB(180,180,180)
+	userLbl.TextXAlignment = Enum.TextXAlignment.Left
+	userLbl.BackgroundTransparency = 1
+	userLbl.Text = "@"..plr.Name
+	userLbl.Parent = frame
+
+	local teleportBtn = Instance.new("TextButton")
+	teleportBtn.Size = UDim2.new(0,120,0,30)
+	teleportBtn.Position = UDim2.new(0.5,-130,0,140)
+	teleportBtn.BackgroundColor3 = Color3.fromRGB(105,55,180)
+	teleportBtn.Font = Enum.Font.GothamBold
+	teleportBtn.TextSize = 16
+	teleportBtn.TextColor3 = Color3.new(1,1,1)
+	teleportBtn.Text = "Teleport"
+	teleportBtn.Parent = frame
+
+	teleportBtn.MouseButton1Click:Connect(function()
+		if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+			local targetRoot = plr.Character.HumanoidRootPart
+			local behindPos = targetRoot.CFrame * CFrame.new(0,0, -3)
+			player.Character.HumanoidRootPart.CFrame = behindPos
+		end
+	end)
+
+	local deselectBtn = Instance.new("TextButton")
+	deselectBtn.Size = UDim2.new(0,120,0,30)
+	deselectBtn.Position = UDim2.new(0.5,10,0,140)
+	deselectBtn.BackgroundColor3 = Color3.fromRGB(255,60,60)
+	deselectBtn.Font = Enum.Font.GothamBold
+	deselectBtn.TextSize = 16
+	deselectBtn.TextColor3 = Color3.new(1,1,1)
+	deselectBtn.Text = "Deselect"
+	deselectBtn.Parent = frame
+	deselectBtn.MouseButton1Click:Connect(function()
+		selectedPlayers[plr] = nil
+		refreshSelectedTab()
+		refreshPlayers()
+	end)
+
+	local colors = {Red=Color3.fromRGB(255,0,0),Green=Color3.fromRGB(0,255,0),Blue=Color3.fromRGB(0,0,255)}
+	local highlightRow = Instance.new("Frame")
+	highlightRow.Size = UDim2.new(1,-20,0,40)
+	highlightRow.Position = UDim2.new(0,10,0,100)
+	highlightRow.BackgroundTransparency = 1
+	highlightRow.Parent = frame
+
+	local xOffset = 0
+	for name,color in pairs(colors) do
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(0,80,0,30)
+		btn.Position = UDim2.new(0,xOffset,0,0)
+		btn.BackgroundColor3 = color
+		btn.Font = Enum.Font.GothamBold
+		btn.TextSize = 16
+		btn.TextColor3 = Color3.new(1,1,1)
+		btn.Text = "❌"
+		btn.Parent = highlightRow
+
+		btn.MouseButton1Click:Connect(function()
+			if activeHighlights[plr] == name then
+				activeHighlights[plr] = nil
+				btn.Text = "❌"
+				if plr.Character then
+					local h = plr.Character:FindFirstChildOfClass("Highlight")
+					if h then h:Destroy() end
+					local g = plr.Character:FindFirstChild("AboveHeadGui")
+					if g then g:Destroy() end
+				end
+			else
+				activeHighlights[plr] = name
+				for _,b in pairs(highlightRow:GetChildren()) do
+					if b:IsA("TextButton") then b.Text = "❌" end
+				end
+				btn.Text = "✅"
+				applyHighlight(plr,color)
+			end
+		end)
+		xOffset = xOffset + 90
+	end
+end
+
+function refreshSelectedTab()
+	for _,c in pairs(selectedFrame:GetChildren()) do
+		if c:IsA("Frame") then c:Destroy() end
+	end
+	for plr,_ in pairs(selectedPlayers) do
+		createSelectedPlayerFrame(plr)
+	end
+	selectedFrame.CanvasSize = UDim2.new(0,0,0,selectedListLayout.AbsoluteContentSize.Y+10)
+end
+
+-- Reapply highlights after respawn
+Players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function()
+		if activeHighlights[plr] then
+			local colorName = activeHighlights[plr]
+			local color
+			if colorName == "Red" then color = Color3.fromRGB(255,0,0)
+			elseif colorName == "Green" then color = Color3.fromRGB(0,255,0)
+			elseif colorName == "Blue" then color = Color3.fromRGB(0,0,255) end
+			if color then applyHighlight(plr,color) end
+		end
+	end)
+end)
+
+-- -------------------------------
+-- GUI TAB + COLOR PICKER
+-- -------------------------------
+local guiFrame = Instance.new("Frame")
+guiFrame.Size = UDim2.new(1,0,1,0)
+guiFrame.BackgroundTransparency = 1
+guiFrame.Visible = false
+guiFrame.Parent = contentFrame
+
+local guiLabel = Instance.new("TextLabel")
+guiLabel.Size = UDim2.new(1,0,0,30)
+guiLabel.Font = Enum.Font.GothamBold
+guiLabel.TextSize = 18
+guiLabel.TextColor3 = Color3.new(1,1,1)
+guiLabel.Text = "Change GUI Color:"
+guiLabel.BackgroundTransparency = 1
+guiLabel.Parent = guiFrame
+
+local colors = {
+	{"Purple",Color3.fromRGB(150,50,255)},
+	{"Blue",Color3.fromRGB(70,100,255)},
+	{"Red",Color3.fromRGB(255,60,60)},
+	{"Green",Color3.fromRGB(60,255,60)}
+}
+
+local colorList = Instance.new("UIListLayout")
+colorList.Padding = UDim.new(0,5)
+colorList.Parent = guiFrame
+
+local function applyGUIColor(color)
+	mainFrame.BackgroundColor3 = color
+	tabFrame.BackgroundColor3 = color
+	for _,btn in pairs(tabFrame:GetChildren()) do
+		if btn:IsA("TextButton") then
+			btn.BackgroundColor3 = color
+		end
+	end
+end
+
+for _,info in ipairs(colors) do
+	local name,color = info[1],info[2]
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0,150,0,35)
+	btn.Position = UDim2.new(0,10,0,40 + (_-1)*40)
+	btn.BackgroundColor3 = color
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 16
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.Text = name
+	btn.Parent = guiFrame
+	btn.MouseButton1Click:Connect(function()
+		applyGUIColor(color)
+	end)
+end
+
+-- -------------------------------
+-- TAB SWITCHING + TOGGLE BUTTON
+-- -------------------------------
+playersTabBtn.MouseButton1Click:Connect(function()
+	playersFrame.Visible = true
+	selectedFrame.Visible = false
+	guiFrame.Visible = false
+end)
+selectedTabBtn.MouseButton1Click:Connect(function()
+	playersFrame.Visible = false
+	selectedFrame.Visible = true
+	guiFrame.Visible = false
+end)
+guiTabBtn.MouseButton1Click:Connect(function()
+	playersFrame.Visible = false
+	selectedFrame.Visible = false
+	guiFrame.Visible = true
+end)
+
+toggleButton.MouseButton1Click:Connect(function()
+	mainFrame.Visible = not mainFrame.Visible
+end)
+
+print("Loaded Watcher Panel")
